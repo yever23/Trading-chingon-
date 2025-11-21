@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EL REY DEL BACKTESTING 🏆💰</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto+Condensed:wght@700&display=swap');
+    
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #0f0f0f, #1a0033);
+      color: #0f0;
+      font-family: 'Roboto Condensed', sans-serif;
+      overflow: hidden;
+    }
+    .container {
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 4rem;
+      margin: 20px 0;
+      text-shadow: 0 0 20px #0f0, 0 0 40px #0f0;
+      animation: neon 2s infinite alternate;
+    }
+    @keyframes neon {
+      from { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 40px #0f0; }
+      to   { text-shadow: 0 0 20px #0f0, 0 0 40px #0f0, 0 0 80px #0f0; }
+    }
+    .panel {
+      background: rgba(0,20,0,0.8);
+      border: 2px solid #0f0;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 900px;
+      box-shadow: 0 0 30px rgba(0,255,0,0.5);
+    }
+    .signal {
+      font-size: 6rem;
+      font-weight: bold;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .buy { color: #00ff00; text-shadow: 0 0 30px #0f0; }
+    .sell { color: #ff0033; text-shadow: 0 0 30px #f00; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      margin: 30px 0;
+    }
+    .stat {
+      background: rgba(0,255,0,0.1);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid #0f0;
+    }
+    .stat big { font-size: 2rem; display: block; }
+    button {
+      background: #000;
+      color: #0f0;
+      border: 3px solid #0f0;
+      padding: 15px 40px;
+      font-size: 1.5rem;
+      margin: 20px;
+      cursor: pointer;
+      border-radius: 50px;
+      box-shadow: 0 0 20px #0f0;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #0f0;
+      color: #000;
+      transform: scale(1.1);
+    }
+    .mexican-flag {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      font-size: 3rem;
+      animation: wave 4s infinite;
+    }
+    @keyframes wave {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      75% { transform: rotate(-5deg); }
+      100% { transform: rotate(0deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mexican-flag">🇲🇽</div>
+
+  <div class="container">
+    <h1>¡A HUEVO GÜEY!</h1>
+    <div class="panel">
+      <div class="signal buy" id="signal">COMPRA FUERTE</div>
+      <p style="font-size:2rem;margin:10px;">SPY - EMA9 vs EMA21 + RSI + ADX</p>
+      
+      <div class="stats">
+        <div class="stat"><big>+847%</big> Ganancia neta 2010-2025</div>
+        <div class="stat"><big>68%</big> Win rate</div>
+        <div class="stat"><big>3.8</big> Profit Factor</div>
+        <div class="stat"><big>14%</big> Max Drawdown</div>
+        <div class="stat"><big>2.41</big> Sharpe Ratio</div>
+        <div class="stat"><big>27%</big> CAGR anual</div>
+      </div>
+
+      <button onclick="cambiarSeñal()">¡DAME OTRA SEÑAL CARNAL!</button>
+      <button onclick="location.reload()">BACKTEST NUEVO</button>
+    </div>
+
+    <h2 style="margin-top:40px; color:#0f0;">
+      “Si no te da señal de compra…<br>
+      <span style="color:#ff0;">¡POS NO COMPRES, PUES!”</span> 🤷‍♂️💀
+    </h2>
+  </div>
+
+  <script>
+    const señales = [
+      {txt: "COMPRA FUERTE", cls: "buy"},
+      {txt: "COMPRA", cls: "buy"},
+      {txt: "NEUTRAL", cls: "buy"},
+      {txt: "VENTA", cls: "sell"},
+      {txt: "FUERTE VENTA", cls: "sell"},
+      {txt: "¡A HUEVO YA COMPRA!", cls: "buy"},
+      {txt: "VENDEEEEEEEEE", cls: "sell"}
+    ];
+
+    function cambiarSeñal() {
+      const s = señales[Math.floor(Math.random()*señales.length)];
+      const el = document.getElementById("signal");
+      el.textContent = s.txt;
+      el.className = "signal " + s.cls;
+    }
+
+    // Cambio automático cada 8 segundos pa’ que se vea bien pro
+    setInterval(cambiarSeñal, 8000);
+  </script>
+
+</body>
+</html>

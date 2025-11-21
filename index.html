@@ -2,30 +2,30 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EL REY DEL BACKTESTING 🏆💰 - v2.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>EL REY DEL BACKTESTING 🏆💰 - v2.1 iPhone Fix</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Roboto+Condensed:wght@700&display=swap');
     
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       background: linear-gradient(135deg, #0f0f0f, #1a0033);
       color: #0f0;
       font-family: 'Roboto Condensed', sans-serif;
-      overflow: hidden;
+      /* Quité overflow hidden pa' iPhone */
     }
     .container {
       text-align: center;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh;
       justify-content: space-between;
     }
     h1 {
       font-family: 'Orbitron', sans-serif;
-      font-size: 3rem;
+      font-size: clamp(2rem, 5vw, 3rem); /* Responsive font pa' iPhone */
       margin: 10px 0;
       text-shadow: 0 0 20px #0f0, 0 0 40px #0f0;
       animation: neon 2s infinite alternate;
@@ -41,6 +41,7 @@
       padding: 20px;
       margin: 10px auto;
       max-width: 600px;
+      width: 90%;
     }
     input[type="text"] {
       background: #000;
@@ -49,8 +50,10 @@
       padding: 15px;
       font-size: 1.2rem;
       width: 200px;
+      max-width: 80%;
       border-radius: 10px;
       text-align: center;
+      box-sizing: border-box;
     }
     button {
       background: #000;
@@ -63,8 +66,9 @@
       border-radius: 50px;
       box-shadow: 0 0 20px #0f0;
       transition: all 0.3s;
+      touch-action: manipulation; /* Pa' touch en iPhone */
     }
-    button:hover {
+    button:hover, button:active {
       background: #0f0;
       color: #000;
       transform: scale(1.05);
@@ -90,11 +94,12 @@
       padding: 20px;
       margin: 10px auto;
       max-width: 900px;
+      width: 90%;
       box-shadow: 0 0 30px rgba(0,255,0,0.5);
-      display: none; /* Oculto hasta que corra backtest */
+      display: none;
     }
     .signal {
-      font-size: 4rem;
+      font-size: clamp(2rem, 8vw, 4rem);
       font-weight: bold;
       animation: pulse 1.5s infinite;
       margin: 10px 0;
@@ -129,11 +134,12 @@
       margin: 20px 0;
     }
     .mexican-flag {
-      position: absolute;
+      position: fixed;
       bottom: 20px;
       left: 20px;
       font-size: 3rem;
       animation: wave 4s infinite;
+      z-index: 10;
     }
     @keyframes wave {
       0% { transform: rotate(0deg); }
@@ -146,6 +152,14 @@
       color: #0f0;
       font-size: 1.2rem;
     }
+    .debug {
+      color: #ff0;
+      font-size: 0.8rem;
+      margin-top: 20px;
+      padding: 10px;
+      background: rgba(255,255,0,0.1);
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -153,7 +167,7 @@
   <div class="mexican-flag">🇲🇽</div>
 
   <div class="container">
-    <h1>¡A HUEVO GÜEY! v2.0</h1>
+    <h1>¡A HUEVO GÜEY! v2.1</h1>
     
     <div class="input-panel">
       <h2>Ingresa el símbolo (ej: AAPL, BTC-USD, AMXL.MX):</h2>
@@ -161,7 +175,9 @@
       <input type="text" id="symbol" placeholder="SPY" value="SPY">
       <br>
       <button onclick="runBacktest()">¡CORRE EL BACKTEST, GÜEY! 🚀</button>
+      <button onclick="forceLoad()">FORCE LOAD (pa' iPhone)</button>
       <div class="loader" id="loader">Calculando... ¡Échale un ojo! ⏳</div>
+      <div class="debug" id="debug"></div>
     </div>
 
     <div class="panel" id="panel">
@@ -190,17 +206,18 @@
   </div>
 
   <script>
-    // Datos fake para stats y equity curve (basados en backtests reales promedio)
+    // Debug pa' iPhone
+    function logDebug(msg) {
+      document.getElementById('debug').innerHTML += msg + '<br>';
+      console.log(msg); // También al console pa' checar en Safari dev tools
+    }
+    logDebug('Página cargada en iPhone? Vamos a ver...');
+
+    // Datos base (mismos de antes)
     const baseStats = {
-      total: 847,
-      win: 68,
-      pf: 3.8,
-      dd: 14,
-      sharpe: 2.41,
-      cagr: 27
+      total: 847, win: 68, pf: 3.8, dd: 14, sharpe: 2.41, cagr: 27
     };
 
-    // Señales random pero realistas
     const señales = [
       {txt: "FUERTE COMPRA", cls: "buy"},
       {txt: "COMPRA", cls: "buy"},
@@ -212,53 +229,58 @@
     ];
 
     function runBacktest() {
+      logDebug('Iniciando backtest...');
       const symbol = document.getElementById('symbol').value.toUpperCase() || 'SPY';
       const loader = document.getElementById('loader');
       const panel = document.getElementById('panel');
       const strategy = document.getElementById('strategy');
-      const runBtn = event.target;
+      const runBtn = document.querySelector('button[onclick="runBacktest()"]');
 
-      // Animación de carga
       runBtn.disabled = true;
       loader.style.display = 'block';
       panel.style.display = 'none';
+      logDebug('Loader activado - delay corto pa\' iPhone');
 
-      // Simula delay de "cálculo" (3-5 seg pa' que se sienta real)
-      setTimeout(() => {
-        loader.style.display = 'none';
-        panel.style.display = 'block';
-        runBtn.disabled = false;
+      // Delay más corto y con requestAnimationFrame pa' Safari
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          loader.style.display = 'none';
+          panel.style.display = 'block';
+          runBtn.disabled = false;
+          logDebug('Backtest completado!');
 
-        // Actualiza estrategia
-        strategy.textContent = `${symbol} - EMA9 vs EMA21 + RSI + ADX`;
+          strategy.textContent = `${symbol} - EMA9 vs EMA21 + RSI + ADX`;
 
-        // Genera stats randomizadas (variación ±20% de base)
-        const variation = 0.2;
-        const newStats = {
-          total: (baseStats.total * (1 + (Math.random() - 0.5) * variation)).toFixed(0),
-          win: (baseStats.win * (1 + (Math.random() - 0.5) * 0.1)).toFixed(0),
-          pf: (baseStats.pf * (1 + (Math.random() - 0.5) * 0.2)).toFixed(1),
-          dd: (baseStats.dd * (1 + (Math.random() - 0.5) * 0.3)).toFixed(0),
-          sharpe: (baseStats.sharpe * (1 + (Math.random() - 0.5) * 0.1)).toFixed(2),
-          cagr: (baseStats.cagr * (1 + (Math.random() - 0.5) * 0.15)).toFixed(0)
-        };
+          // Stats random (mismas)
+          const variation = 0.2;
+          const newStats = {
+            total: (baseStats.total * (1 + (Math.random() - 0.5) * variation)).toFixed(0),
+            win: (baseStats.win * (1 + (Math.random() - 0.5) * 0.1)).toFixed(0),
+            pf: (baseStats.pf * (1 + (Math.random() - 0.5) * 0.2)).toFixed(1),
+            dd: (baseStats.dd * (1 + (Math.random() - 0.5) * 0.3)).toFixed(0),
+            sharpe: (baseStats.sharpe * (1 + (Math.random() - 0.5) * 0.1)).toFixed(2),
+            cagr: (baseStats.cagr * (1 + (Math.random() - 0.5) * 0.15)).toFixed(0)
+          };
 
-        // Actualiza stats
-        const statsDivs = document.querySelectorAll('.stat');
-        statsDivs[0].innerHTML = `<big>+${newStats.total}%</big> Ganancia neta 2010-2025`;
-        statsDivs[1].innerHTML = `<big>${newStats.win}%</big> Win rate`;
-        statsDivs[2].innerHTML = `<big>${newStats.pf}</big> Profit Factor`;
-        statsDivs[3].innerHTML = `<big>${newStats.dd}%</big> Max Drawdown`;
-        statsDivs[4].innerHTML = `<big>${newStats.sharpe}</big> Sharpe Ratio`;
-        statsDivs[5].innerHTML = `<big>${newStats.cagr}%</big> CAGR anual`;
+          const statsDivs = document.querySelectorAll('.stat');
+          statsDivs[0].innerHTML = `<big>+${newStats.total}%</big> Ganancia neta 2010-2025`;
+          statsDivs[1].innerHTML = `<big>${newStats.win}%</big> Win rate`;
+          statsDivs[2].innerHTML = `<big>${newStats.pf}</big> Profit Factor`;
+          statsDivs[3].innerHTML = `<big>${newStats.dd}%</big> Max Drawdown`;
+          statsDivs[4].innerHTML = `<big>${newStats.sharpe}</big> Sharpe Ratio`;
+          statsDivs[5].innerHTML = `<big>${newStats.cagr}%</big> CAGR anual`;
 
-        // Nueva señal random
-        cambiarSeñal();
+          cambiarSeñal();
+          drawEquityChart(newStats.total > baseStats.total);
 
-        // Dibuja equity curve fake
-        drawEquityChart(newStats.total > baseStats.total);
+        }, Math.random() * 1000 + 1000); // 1-2 seg max
+      });
+    }
 
-      }, Math.random() * 2000 + 3000);
+    function forceLoad() {
+      logDebug('Force load activado - limpiando cache');
+      runBacktest(); // Fuerza el backtest inmediato
+      location.reload(); // Y recarga pa' cache fresco
     }
 
     function cambiarSeñal() {
@@ -271,37 +293,38 @@
     function drawEquityChart(isPositive) {
       const canvas = document.getElementById('equityChart');
       const ctx = canvas.getContext('2d');
-      canvas.width = canvas.offsetWidth;
-      canvas.height = 200;
+      canvas.width = canvas.offsetWidth * devicePixelRatio;
+      canvas.height = 200 * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio); // Pa' retina en iPhone
 
-      // Limpia
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width / devicePixelRatio, canvas.height / devicePixelRatio);
 
-      // Línea equity curve (zigzag simple)
       ctx.strokeStyle = isPositive ? '#00ff00' : '#ff0033';
       ctx.lineWidth = 2;
       ctx.beginPath();
       const steps = 50;
       for (let i = 0; i < steps; i++) {
-        const x = (i / steps) * canvas.width;
-        const y = canvas.height / 2 + Math.sin(i * 0.5 + (isPositive ? 0 : Math.PI)) * (canvas.height / 3) * (isPositive ? 1 : -1);
+        const x = (i / steps) * (canvas.width / devicePixelRatio);
+        const y = (canvas.height / devicePixelRatio) / 2 + Math.sin(i * 0.5 + (isPositive ? 0 : Math.PI)) * ((canvas.height / devicePixelRatio) / 3) * (isPositive ? 1 : -1);
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
 
-      // Eje Y labels
       ctx.fillStyle = '#0f0';
       ctx.font = '12px Roboto Condensed';
       ctx.fillText('100%', 10, 20);
-      ctx.fillText('0%', 10, canvas.height - 10);
+      ctx.fillText('0%', 10, canvas.height / devicePixelRatio - 10);
     }
 
-    // Carga inicial con SPY
-    runBacktest();
-    drawEquityChart(true);
+    // Carga inicial inmediata
+    window.addEventListener('load', () => {
+      logDebug('Window loaded - iniciando auto-backtest');
+      runBacktest();
+      drawEquityChart(true);
+    });
 
-    // Intervalo para refresh auto cada 30 seg (opcional)
+    // Intervalo largo pa' refresh
     setInterval(() => {
       if (document.getElementById('panel').style.display === 'block') {
         cambiarSeñal();
